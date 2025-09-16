@@ -18,15 +18,13 @@ public class Building : MonoBehaviour
     }
 
     public BuildingEvents buildingEvents;
+    private DeliveryOrderSystem orderSystem;
 
     void Start()
     {
         SetupBuilding();
-    }
-
-    void Update()
-    {
-        
+        orderSystem = FindAnyObjectByType<DeliveryOrderSystem>();
+        CreateNameTag();
     }
 
     void SetupBuilding()
@@ -39,12 +37,10 @@ public class Building : MonoBehaviour
             {
                 case BuildingType.Restaurant:
                     mat.color = Color.red;
-                    buildingName = "음식점";
                     break;
 
                 case BuildingType.Coustomer:
                     mat.color = Color.green;
-                    buildingName = "고객집";
                     break;
 
                 case BuildingType.ChargingStation:
@@ -78,23 +74,50 @@ public class Building : MonoBehaviour
         }
     }
 
+    void CreateNameTag()
+    {
+        //건물 위에 이름표 생성
+        GameObject nameTag = new GameObject("NameTag");
+        nameTag.transform.SetParent(transform);
+        nameTag.transform.localPosition = Vector3.up * 1.5f;
+
+        TextMesh textMesh = nameTag.AddComponent<TextMesh>();
+        textMesh.text = buildingName;
+        textMesh.characterSize = 0.2f;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.color = Color.white;
+        textMesh.fontSize = 20;
+
+        nameTag.AddComponent<Bildboard>();
+    }
+
     void HandleDriverService(DeliveryDriver driver)
     {
         switch (buildingType)
         {
             case BuildingType.Restaurant:
-                Debug.Log($"{buildingName}에서 음식을 픽업했습니다");
+                if(orderSystem != null)
+                {
+                    orderSystem.OnDeliverEnteredRestaurant(this);
+                }
             break;
 
             case BuildingType.Coustomer:
-                Debug.Log($"{buildingName}에 배달완료");
-                driver.CompleteDelivery();
+                if (orderSystem != null)
+                {
+                    orderSystem.OnDeliverEnteredCustomer(this);
+                }
+                else
+                {
+                    driver.CompleteDelivery();
+                }
             break;
 
             case BuildingType.ChargingStation:
-                Debug.Log($"{buildingName}에서 배터리를 충전했습니다");
+                
                 driver.ChargeBattery();
             break;
         }
+        buildingEvents.OnServiceUsed?.Invoke(buildingType);
     }
 }
