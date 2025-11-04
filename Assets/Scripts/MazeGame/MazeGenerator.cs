@@ -21,9 +21,17 @@ public class MazeGenerator : MonoBehaviour
 
     private MazeCell[,] maze;
     private Stack<MazeCell> cellStack;              //DFS를 위한 스택
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+    }
     void Start()
     {
-        GenerateMaze();
+            GenerateMaze();
     }
 
     // Update is called once per frame
